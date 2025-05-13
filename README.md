@@ -18,21 +18,22 @@
 *   **数据格式**: JSON
 
 ## 项目结构
-ai-architecture-recommender 
-├── src 
-│ ├── init.py 
-│ ├── config.py # 配置文件，如 API 密钥等 
-│ ├── llm_client.py # LLM 客户端的实现 (例如 DeepSeekClient) 
-│ ├── main.py # FastAPI 应用入口和 API 端点定义 
-│ ├── agents # 包含各个智能体的目录 
-│ │ ├── init.py 
-│ │ ├── requirement_agent.py # 需求解析智能体 
-│ │ ├── architecture_agent.py # 架构匹配智能体 
-│ │ └── evaluation_agent.py # 评估生成智能体 
-│ └── data 
-│ └── knowledge.json # 模拟的架构知识库 
-├── requirements.txt # 项目依赖 
-└── README.md # 项目说明文档
+
+ai-architecture-recommender  
+├── src  
+│   ├── __init__.py  
+│   ├── config.py               # 配置文件，如 API 密钥等  
+│   ├── llm_client.py           # LLM 客户端的实现 (例如 DeepSeekClient)  
+│   ├── main.py                 # FastAPI 应用入口和 API 端点定义  
+│   ├── agents                  # 包含各个智能体的目录  
+│   │   ├── __init__.py  
+│   │   ├── requirement_agent.py    # 需求解析智能体  
+│   │   ├── architecture_agent.py   # 架构匹配智能体  
+│   │   └── evaluation_agent.py     # 评估生成智能体  
+│   └── data  
+│       └── knowledge.json      # 模拟的架构知识库  
+├── requirements.txt            # 项目依赖  
+└── README.md                   # 项目说明文档  
 
 
 ## 安装与配置
