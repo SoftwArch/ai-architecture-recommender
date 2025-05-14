@@ -1,23 +1,110 @@
-# 架构匹配 Agent
-from typing import Dict, Any
-from llm_client import default_llm_client
+from pathlib import Path
+import json
+import logging
+from typing import Dict, List, Optional
+from models.schemas import ArchitectureRecommendation
+from config.settings import settings
+from src.clients.deepseek_client import DeepSeekClient
+
+logger = logging.getLogger(__name__)
 
 class ArchitectureAgent:
-    """
-    Agent responsible for recommending software architectures based on requirements.
-    """
-    def __init__(self, llm_client=None):
-        self.llm_client = llm_client if llm_client else default_llm_client
+    def __init__(self, llm_client: DeepSeekClient):
+        self.llm = llm_client
+        self.knowledge = self._load_architecture_knowledge()
+        self.min_candidates = 3
 
-    async def recommend(self, requirements_analysis: Dict[str, Any]) -> Dict[str, Any]:
+    def _load_architecture_knowledge(self) -> Dict:
+        """加载本地架构知识库"""
+        try:
+            knowledge_path = Path(__file__).parent.parent / "knowledge" / "architecture_knowledge.json"
+            with open(knowledge_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            logger.error(f"加载知识库失败: {str(e)}")
+            return {}
+
+    def _rule_based_filter(self, analysis_data: Dict) -> List[str]:
+        """基于规则的初步筛选"""
+        candidates = []
+        
+        # 根据非功能性需求筛选
+        nfr = analysis_data.get('non_functional_requirements', {})
+        if nfr.get('performance'):
+            candidates.extend(['事件驱动架构', '微服务架构'])
+        if nfr.get('scalability'):
+            candidates.append('微服务架构')
+        if nfr.get('reliability'):
+            candidates.append('分层架构')
+
+        # 根据约束条件筛选
+        constraints = analysis_data.get('constraints', [])
+        if '低成本运维' in constraints:
+            candidates.append('单体架构')
+
+        return list(set(candidates))
+
+    async def _llm_based_ranking(self, candidates: List[str], analysis_data: Dict) -> ArchitectureRecommendation:
+        """使用LLM进行最终排序和推荐"""
+        prompt = f"""
+        根据以下需求分析结果和候选架构列表，请：
+        1. 推荐最适合的3种架构风格（按优先级排序）
+        2. 生成比较矩阵
+        3. 给出最终推荐理由
+
+        需求分析：
+        {json.dumps(analysis_data, indent=2, ensure_ascii=False)}
+
+        候选架构：
+        {candidates}
+
+        知识库信息：
+        {json.dumps(self.knowledge, ensure_ascii=False)}
+
+        请使用严格JSON格式返回，包含以下字段：
+        - recommended_styles (按优先级排序的架构列表)
+        - comparison_matrix (架构对比矩阵)
+        - final_recommendation (最终推荐架构)
+        - reasoning (推荐理由)
         """
-        Recommends software architecture styles based on the provided requirements analysis.
+        
+        try:
+            response = await self.llm.generate_completion(prompt, temperature=0.5)
+            if not response:
+                raise ValueError("LLM响应为空")
+            
+            # 提取JSON内容
+            json_str = response.split("```json")[1].split("```")[0].strip()
+            result = json.loads(json_str)
+            
+            # 确保最少推荐数量
+            if len(result['recommended_styles']) < self.min_candidates:
+                result['recommended_styles'].extend(
+                    ['微服务架构', '事件驱动架构', '分层架构'][:self.min_candidates-len(result['recommended_styles'])]
+                )
+                
+            return ArchitectureRecommendation(**result)
+        except (IndexError, json.JSONDecodeError, KeyError) as e:
+            logger.error(f"解析LLM响应失败: {str(e)}")
+            return ArchitectureRecommendation(
+                recommended_styles=['微服务架构', '事件驱动架构', '分层架构'],
+                final_recommendation='微服务架构',
+                reasoning="默认推荐：适用于大多数分布式系统场景",
+                comparison_matrix={}
+            )
 
-        Args:
-            requirements_analysis: A dictionary containing the analyzed software requirements.
-
-        Returns:
-            A dictionary containing recommended architecture styles, a comparison matrix,
-            a final recommendation, and the reasoning behind it.
-        """
-        return await self.llm_client.recommend_architecture(requirements_analysis)
+    async def recommend(self, analysis_data: Dict) -> ArchitectureRecommendation:
+        """混合推荐流程"""
+        # 第一阶段：基于规则的筛选
+        # TODO: 待完善
+        # rule_based_candidates = self._rule_based_filter(analysis_data)
+        rule_based_candidates = ['进程间通信架构', '隐式调用架构', '显式调用架构', '批处理架构', '管道-过滤器架构', '仓库架构', '黑板架构', '解释器架构', '基于规则的系统架构', '面向对象架构', '分层架构', '微服务架构']
+        
+        # 第二阶段：LLM推理
+        if len(rule_based_candidates) < self.min_candidates:
+            rule_based_candidates.extend(['微服务架构', '事件驱动架构', '分层架构'])
+        
+        return await self._llm_based_ranking(
+            candidates=list(set(rule_based_candidates)),
+            analysis_data=analysis_data
+        )
