@@ -61,7 +61,7 @@ class AssistantService:
             print("第三阶段：架构评估: ")
             print("*******************************************************")
             evaluation = await self.evaluation_agent.evaluate(
-                arch_recommendation.model_dump()
+                requirement_analysis.model_dump(), arch_recommendation.model_dump()
             )
 
             return {

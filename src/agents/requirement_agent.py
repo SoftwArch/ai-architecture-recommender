@@ -22,6 +22,7 @@ class RequirementAgent:
                     - non_functional_requirements: 非功能性需求字典
                     - constraints: 约束列表
                     - analysis_summary: 分析总结
+                    注意：所有字段均用中文回答。
                 """
         response = await self.llm.generate_completion(prompt)
         return self._parse_response(response) if response else None

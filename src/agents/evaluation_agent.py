@@ -23,19 +23,19 @@ class EvaluationAgent:
             }
         )
 
-    async def evaluate(self, recommendation: Dict) -> ArchitectureEvaluation:
+    async def evaluate(self, requirement: Dict, recommendation: Dict) -> ArchitectureEvaluation:
         """
         评估架构推荐方案，生成详细报告
         """
         try:
-            prompt = self._build_evaluation_prompt(recommendation)
+            prompt = self._build_evaluation_prompt(requirement, recommendation)
             response = await self.llm.generate_completion(prompt, temperature=0.3)
             return self._parse_response(response) if response else self.default_evaluation
         except Exception as e:
             logger.error(f"评估流程异常: {str(e)}")
             return self.default_evaluation
 
-    def _build_evaluation_prompt(self, recommendation: Dict) -> str:
+    def _build_evaluation_prompt(self, requirement: Dict, recommendation: Dict) -> str:
         """
         构建评估提示词模板
         """
@@ -43,20 +43,24 @@ class EvaluationAgent:
         请对以下架构推荐方案进行全面技术评估：
 
         【推荐方案详情】
+        关键特征：{requirement.get('key_features', [])}
+        非功能性需求：{requirement.get('non_functional_requirements', {})}
+        约束条件：{requirement.get('constraints', [])}
+        需求分析结果：{requirement.get('analysis_summary')}
         最终推荐架构：{recommendation.get('final_recommendation')}
         候选架构列表：{recommendation.get('recommended_styles', [])}
         推荐理由：{recommendation.get('reasoning', '')}
 
         【评估要求】
-        1. 从技术角度给出0-10分的总体评分
-        2. 分析至少3个关键指标
+        1. 分析5个该软件应重点和优先关注的质量属性及评分
+        2. 给出0-10分的总体评分
         3. 列出主要优势和潜在缺陷
         4. 提出2-3条改进建议
         5. 评估主要技术风险
 
         请使用严格JSON格式返回，包含以下字段：
         - overall_score: 总体评分（浮点数）
-        - metrics: 评估指标列表（至少3项）
+        - metrics: 评估指标及分数列表（3项）
         - strengths: 优势列表（至少2项）
         - weaknesses: 劣势列表（至少2项）
         - improvement_suggestions: 改进建议列表
@@ -65,8 +69,8 @@ class EvaluationAgent:
         示例格式：
         ```json
         {{
+            "metrics": ["可扩展性:8.8", "性能:7.9", "安全性:8.6", "可维护性:9.0", "易用性:7.5"],
             "overall_score": 8.5,
-            "metrics": ["可扩展性", "性能", "安全性"],
             "strengths": ["高并发处理能力", "模块解耦设计"],
             "weaknesses": ["运维复杂度高", "初期实施成本大"],
             "improvement_suggestions": [

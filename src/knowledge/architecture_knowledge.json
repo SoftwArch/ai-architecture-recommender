@@ -1,12 +1,439 @@
 {
-  "微服务架构": {
-    "适用场景": ["高并发", "复杂系统"],
-    "优点": ["模块解耦", "独立部署"],
-    "缺点": ["分布式复杂性"]
+  "数据流架构风格(data_flow)": {
+    "批处理架构风格(batch_sequential)": {
+      "definition": "批处理体系结构风格（Batch Sequential Style）为数据流体系结构风格的子风格。其每个处理步骤是一个单独程序，每一步必须在前一步结束后才能开始，且数据必须完整，以整体的方式传递。",
+      "core_components": {
+        "components": "独立应用程序（Independent programs）",
+        "connectors": "某种类型的媒质（如磁带）",
+        "topology": "连接件定义相应的数据流图，表达拓扑结构"
+      },
+      "characteristics": {
+        "processing_mode": "整体传递数据（Total）",
+        "granularity": "构件粒度较大（Coarse grained）",
+        "concurrency": "无并发（No concurrency）",
+        "latency": "延迟高，实时性差（High latency）"
+      },
+      "pros": [
+        "高内聚、低耦合",
+        "支持功能模块复用",
+        "可维护性和可扩展性强"
+      ],
+      "cons": [
+        "无法支持并行执行",
+        "交互式处理能力弱",
+        "数据传输缺乏通用标准"
+      ],
+      "applications": [
+        {
+          "name": "基于Eclipse的代码重复检测工具",
+          "description": "处理步骤包括代码分析、程序转换、相似代码检测和度量分析，每个步骤独立且数据格式不同"
+        },
+        {
+          "name": "磁带驱动数据处理系统",
+          "description": "数据通过磁带顺序传输，每个处理步骤运行至完成"
+        }
+      ]
+    },
+    "管道-过滤器架构风格(pipes_and_filters)": {
+      "definition": "管道-过滤器体系结构风格（Pipes and Filters Style）通过递增的数据流处理实现功能，数据在输入被完全消费前即可产生输出。",
+      "core_components": {
+        "components": "过滤器（Filters）",
+        "connectors": "管道（Pipes）",
+        "topology": "连接件定义数据流图"
+      },
+      "characteristics": {
+        "processing_mode": "增量处理（Incremental）",
+        "granularity": "构件粒度较小（Fine grained）",
+        "concurrency": "支持并发（Concurrency possible）",
+        "latency": "实时性好（Low latency）"
+      },
+      "filter_types": [
+        "数据丰富（Enrich）",
+        "数据精炼（Refine）",
+        "数据转换（Transform）",
+        "数据分解（Split）",
+        "数据合并（Merge）"
+      ],
+      "pros": [
+        "高内聚、低耦合",
+        "支持并行执行",
+        "可维护性和可扩展性强"
+      ],
+      "cons": [
+        "不适合交互式应用",
+        "格式转换耗时",
+        "不适用于需要大量共享数据的场景"
+      ],
+      "applications": [
+        {
+          "name": "Unix管道命令（如 who | sort | lp）",
+          "description": "通过管道连接多个过滤器进程，实现数据流的递增处理"
+        },
+        {
+          "name": "汽车牌照识别系统",
+          "description": "包含图像预处理、定位分割、字符识别等过滤器模块"
+        }
+      ]
+    },
+    "comparison": {
+      "data_flow": {
+        "batch_sequential": "整体传递数据，无并发",
+        "pipe_and_filter": "增量处理，支持并发"
+      },
+      "granularity": {
+        "batch_sequential": "构件粒度大",
+        "pipe_and_filter": "构件粒度小"
+      },
+      "latency": {
+        "batch_sequential": "高延迟",
+        "pipe_and_filter": "低延迟"
+      }
+    }
   },
-  "事件驱动架构": {
-    "适用场景": ["实时系统", "异步处理"],
-    "优点": ["高吞吐量", "松耦合"],
-    "缺点": ["调试复杂"]
+  "调用-返回架构风格(call/return)": {
+    "主程序-子过程架构风格(main_program_subroutine)": {
+      "definition": "主程序-子过程体系结构风格是一种经典的面向过程软件架构，采用单线程控制，将问题分解为多个步骤处理，强调模块化和分层设计。",
+      "core_components": {
+        "components": ["主程序（Main Program）", "子程序（Subroutine）"],
+        "connectors": "调用-返回机制",
+        "topology": "层次化分解结构"
+      },
+      "characteristics": [
+        "显式数据共享",
+        "同步执行",
+        "层次化分解程序",
+        "显式可见数据"
+      ],
+      "applications": [
+        {
+          "name": "在线购物系统",
+          "description": "包含用户管理、商品管理、订单管理和支付子系统，各子系统独立处理特定功能"
+        },
+        {
+          "name": "工业自动化系统",
+          "description": "分层架构实现数字化智能制造，从企业决策层到生产感知层逐级控制"
+        },
+        {
+          "name": "通信系统仿真",
+          "description": "分通信网络层、通信链路层和模块单元层，实现复杂系统的简化处理"
+        }
+      ]
+    },
+    "面向对象架构风格(object_oriented)": {
+      "definition": "面向对象体系结构风格通过类和对象实现系统模块化，强调封装、继承和多态。",
+      "core_components": {
+        "components": ["类（Class）", "对象（Object）"],
+        "connectors": ["方法调用（Method Invocation）", "消息传递（Message Passing）"],
+        "constraints": ["封装性（Encapsulation）", "继承性（Inheritance）"]
+      },
+      "characteristics": [
+        "封装隐藏实现细节",
+        "通过公共接口交互",
+        "支持多态和继承",
+        "数据与行为绑定"
+      ],
+      "applications": [
+        {
+          "name": "在线商城系统",
+          "description": "划分用户功能和管理员功能为独立对象，支持灵活扩展"
+        }
+      ]
+    },
+    "层次系统架构风格(layered)": {
+      "definition": "层次系统体系结构风格将系统划分为单向依赖的层次（如表示层、业务逻辑层、数据存储层）。",
+      "core_components": {
+        "layers": [
+          "表示层（Presentation Layer）",
+          "业务逻辑层（Business Logic Layer）",
+          "数据存储层（Data Storage Layer）"
+        ],
+        "connectors": ["接口调用", "消息传递"],
+        "topology_constraint": "高层次仅依赖相邻低层次"
+      },
+      "characteristics": [
+        "层次间单向通信",
+        "接口稳固减少耦合",
+        "复杂度分层隐藏",
+        "修改影响范围有限"
+      ],
+      "applications": [
+        {
+          "name": "智能健康检测系统",
+          "description": "整合传感器、设备和云服务，分层处理数据采集、分析和远程监测"
+        },
+        {
+          "name": "计算机网络模型",
+          "description": "OSI七层模型或TCP/IP四层模型，各层独立处理特定协议"
+        }
+      ]
+    },
+    "comparison": {
+      "control_flow": {
+        "main_program_subroutine": "主程序显式调用子程序",
+        "object_oriented": "对象间通过消息或方法交互",
+        "layered_system": "层次间单向调用"
+      },
+      "coupling": {
+        "main_program_subroutine": "高耦合（显式数据共享）",
+        "object_oriented": "低耦合（封装接口）",
+        "layered_system": "低耦合（接口隔离）"
+      }
+    }
+  },
+  "独立构件架构风格(independent_components)": {
+    "进程通信架构风格(communicating_process)": {
+      "definition": "进程通信体系结构风格通过独立进程间的消息传递实现协同，强调异步/同步通信和明确的消息收发机制。",
+      "core_components": {
+        "components": "独立进程（Independent Processes）",
+        "connectors": "消息传递（Message Passing）",
+        "topology": "基于通信网络的拓扑结构（如点对点、广播、多播）"
+      },
+      "characteristics": [
+        "进程独立执行，拥有独立控制线程",
+        "支持同步或异步通信",
+        "消息类型包括简单消息、广播消息、多播消息",
+        "消息接收方数量可灵活配置"
+      ],
+      "variants": {
+        "multi_agent_system": {
+          "definition": "多Agent体系结构风格，由多个智能体（Agent）通过协作实现系统目标。",
+          "components": {
+            "agent": "具有自主性、交互性、适应性的软件实体",
+            "connectors": "Agent间的消息交互"
+          },
+          "applications": [
+            {
+              "name": "多机器人无人物流系统",
+              "description": "通过调度Agent、路径Agent和机器人Agent协作，实现动态任务调度和路径规划"
+            },
+            {
+              "name": "无人机集群系统",
+              "description": "多Agent协作完成复杂飞行任务"
+            }
+          ]
+        }
+      }
+    },
+    "隐式调用架构风格(implicit_invocation)": {
+      "definition": "隐式调用架构风格通过事件触发间接调用处理程序，事件源与处理器解耦。",
+      "core_components": {
+        "components": ["事件源（Event Source）", "事件处理器（Event Handler）", "事件管理器（Event Manager）"],
+        "connectors": "事件-执行过程绑定（Event-Procedure Bindings）"
+      },
+      "characteristics": [
+        "分离的交互（事件发布者无需感知订阅者）",
+        "一对多通信（支持广播和订阅）",
+        "异步处理",
+        "事件链触发（一个事件可触发后续事件）"
+      ],
+      "dispatch_mechanisms": {
+        "without_dispatcher": {
+          "name": "无独立派遣模块",
+          "description": "采用观察者模式（Observer/Observable），事件源直接通知注册的处理器",
+          "example": "邮件订阅系统"
+        },
+        "with_dispatcher": {
+          "name": "有独立派遣模块",
+          "strategies": [
+            {
+              "type": "全广播（All Broadcasting）",
+              "description": "事件广播至所有模块，处理器自行决定是否处理",
+              "example": "新闻推送系统"
+            },
+            {
+              "type": "选择式广播（Selected Broadcasting）",
+              "subtypes": [
+                {
+                  "name": "点对点（Queue-based）",
+                  "description": "事件通过消息队列传递，仅被单一消费者处理",
+                  "example": "网约车订单分配"
+                },
+                {
+                  "name": "发布-订阅（Publish-Subscribe）",
+                  "description": "事件通过Topic分发，支持多订阅者消费",
+                  "example": "股票交易平台"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "applications": [
+        {
+          "name": "调试器断点处理",
+          "description": "调试器发布断点事件，触发编辑器滚动和变量监视器更新"
+        },
+        {
+          "name": "外卖平台订单处理",
+          "description": "用户下单事件触发商家接单和骑手派送流程"
+        }
+      ]
+    },
+    "显式调用架构风格(explicit_invocation)": {
+      "definition": "显式调用架构风格通过直接调用方法或函数实现组件交互，控制流明确。",
+      "core_components": {
+        "components": ["调用者（Caller）", "被调用者（Callee）"],
+        "connectors": "方法调用（Method Invocation）"
+      },
+      "characteristics": [
+        "控制流同步执行",
+        "调用者需明确被调用者接口",
+        "强耦合（依赖具体实现）",
+        "结果直接返回"
+      ],
+      "applications": [
+        {
+          "name": "传统主程序-子过程系统",
+          "description": "主程序显式调用子程序完成功能"
+        },
+        {
+          "name": "面向对象系统",
+          "description": "对象通过方法调用直接交互"
+        }
+      ]
+    },
+    "comparison": {
+      "coupling": {
+        "implicit_invocation": "低耦合（事件驱动）",
+        "explicit_invocation": "高耦合（直接依赖）"
+      },
+      "scalability": {
+        "implicit_invocation": "高扩展性（动态注册事件）",
+        "explicit_invocation": "低扩展性（接口固定）"
+      },
+      "use_case": {
+        "implicit_invocation": "适用于动态、异步场景（如实时系统）",
+        "explicit_invocation": "适用于结构化、同步场景（如传统业务系统）"
+      }
+    }
+  },
+  "以数据为中心架构风格(data_centered)": {
+    "仓库架构风格(Repository)": {
+      "定义": "包含数据仓库和独立构件，数据仓库被动存储数据，独立构件通过事务流触发操作。",
+      "构件": {
+        "数据仓库": "集中存储数据的被动组件",
+        "独立构件": "主动操作数据的组件"
+      },
+      "交互方式": "独立构件通过事务流与数据仓库交互",
+      "控制流": "由独立构件主动控制处理逻辑",
+      "数据存储": "静态集中存储，强调数据一致性",
+      "优点": ["逻辑清晰", "数据一致性强", "扩展性好"],
+      "缺点": ["单点故障", "数据结构灵活性差"],
+      "应用场景": ["数据库系统", "IDE数据管理", "编译系统"]
+    },
+    "黑板架构风格(blackboard)": {
+      "定义": "仓库风格的特殊化，由黑板、知识源和控制器组成，黑板主动控制知识源执行。",
+      "构件": {
+        "黑板": "动态存储问题求解状态的中央数据结构",
+        "知识源": "解决特定子问题的独立模块",
+        "控制器": "监控黑板状态并调度知识源"
+      },
+      "交互方式": "通过控制器中介实现黑板与知识源交互",
+      "控制流": "黑板状态驱动控制器调度知识源",
+      "数据存储": "动态分层存储，反映问题求解状态",
+      "优点": ["处理复杂问题", "可修改性高", "知识源可重用"],
+      "缺点": ["终止条件模糊", "黑板结构影响知识源"],
+      "应用场景": ["视频流分析", "航天控制系统", "多领域协作系统"]
+    },
+    "对比": {
+      "定义": {
+        "仓库": "以被动数据仓库为中心，独立构件主动操作数据",
+        "黑板": "以主动黑板为中心，控制器动态调度知识源"
+      },
+      "控制权": {
+        "仓库": "独立构件掌握控制权",
+        "黑板": "控制器根据黑板状态掌握控制权"
+      },
+      "数据特性": {
+        "仓库": "静态、持久化、强一致性",
+        "黑板": "动态、临时状态、层次化"
+      },
+      "适用问题": {
+        "仓库": "结构化数据管理（如数据库、IDE）",
+        "黑板": "非结构化复杂问题（如视频分析、多领域协作）"
+      },
+      "核心缺点": {
+        "仓库": "单点故障风险",
+        "黑板": "求解过程不可预测"
+      },
+      "交互模式": {
+        "仓库": "事务流驱动的单向操作",
+        "黑板": "事件驱动的动态调度"
+      }
+    }
+  },
+  "虚拟机架构风格(virtual_machine)": {
+    "解释器体系结构风格": {
+      "定义": "适用于设计和实现解释性编程语言的执行环境，在目标机器执行环境与符号/脚本语言间建立桥梁，使这些语言能在对应环境中执行。",
+      "构件": {
+        "执行引擎": "状态机，根据代码的语法和语义执行操作",
+        "存储器": [
+          "正在被解释的程序",
+          "被解释的程序的状态",
+          "执行引擎的当前状态"
+        ]
+      },
+      "连接件": ["数据流动", "指令执行", "存储器访问"],
+      "优点": [
+        "灵活性和可扩展性：高层文法与底层硬件解耦",
+        "跨平台性：独立于操作系统和硬件"
+      ],
+      "缺点": [
+        "执行效率低：需解释翻译指令",
+        "调试困难：多解释器交互复杂"
+      ],
+      "应用实例": [
+        "浏览器解释HTML/JavaScript",
+        "Office快捷键解释",
+        "XML解释器（如DCESL转XML）"
+      ]
+    },
+    "基于规则的系统体系结构风格": {
+      "定义": "解释器风格的特例，使用规则库和规则引擎进行决策与操作，适用于推理系统、业务流程管理等场景。",
+      "构件": {
+        "规则库": "存储规则的条件和操作",
+        "事实集": "存储规则执行的输入数据",
+        "工作内存": "临时存储当前处理的数据和规则",
+        "规则引擎": "解析、评估、执行规则的核心组件"
+      },
+      "连接件": ["规则匹配", "数据触发", "操作执行"],
+      "优点": [
+        "规则可重用性：规则可跨系统复用",
+        "业务规则管理简化：易于更新规则库",
+        "逻辑与业务分离：提高维护性"
+      ],
+      "缺点": [
+        "系统复杂性高：规则与逻辑分离增加设计难度",
+        "性能问题：规则解析引入额外开销",
+        "一致性和版本控制挑战：规则冲突风险"
+      ],
+      "应用实例": [
+        "Drools规则引擎（金融业务、促销策略）",
+        "ECA规则系统（航天飞行器在轨演化）",
+        "医疗保险决策支持系统"
+      ]
+    },
+    "对比": {
+      "设计目标": {
+        "解释器": "实现语言跨平台执行",
+        "规则系统": "基于规则进行动态决策"
+      },
+      "核心组件": {
+        "解释器": "执行引擎和存储器",
+        "规则系统": "规则引擎和规则库"
+      },
+      "数据驱动方式": {
+        "解释器": "按代码指令逐行解释",
+        "规则系统": "基于规则匹配和事件触发"
+      },
+      "适用场景": {
+        "解释器": "脚本语言执行（如JavaScript、XML）",
+        "规则系统": "复杂业务逻辑管理（如金融、航天控制）"
+      },
+      "性能影响": {
+        "解释器": "执行效率较低",
+        "规则系统": "规则匹配可能引发延迟"
+      }
+    }
   }
 }

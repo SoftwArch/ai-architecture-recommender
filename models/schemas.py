@@ -9,7 +9,7 @@ class RequirementAnalysis(BaseModel):
 
 class ArchitectureRecommendation(BaseModel):
     recommended_styles: List[str]
-    comparison_matrix: Dict[str, Dict[str, List[str]]]
+    comparison_matrix: Dict[str, Dict[str, str]]
     final_recommendation: str
     reasoning: str
 

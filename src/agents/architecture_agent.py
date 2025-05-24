@@ -25,7 +25,7 @@ class ArchitectureAgent:
             return {}
 
     def _rule_based_filter(self, analysis_data: Dict) -> List[str]:
-        """基于规则的初步筛选"""
+        """基于多维度规则的架构风格初步筛选"""
         candidates = []
         
         # 根据非功能性需求筛选
@@ -49,7 +49,7 @@ class ArchitectureAgent:
         prompt = f"""
         根据以下需求分析结果和候选架构列表，请：
         1. 推荐最适合的3种架构风格（按优先级排序）
-        2. 生成比较矩阵
+        2. 生成比较矩阵 
         3. 给出最终推荐理由
 
         需求分析：
@@ -62,10 +62,11 @@ class ArchitectureAgent:
         {json.dumps(self.knowledge, ensure_ascii=False)}
 
         请使用严格JSON格式返回，包含以下字段：
-        - recommended_styles (按优先级排序的架构列表)
-        - comparison_matrix (架构对比矩阵)
-        - final_recommendation (最终推荐架构)
-        - reasoning (推荐理由)
+        - recommended_styles (按优先级排序的架构列表) (List[str])
+        - comparison_matrix (架构对比矩阵) (Dict[str, Dict[str, str(理由，格式类似于“优秀/良好/一般/差/达标/风险/>=70%(详细原因)”)])
+        - final_recommendation (最终推荐架构) (str)
+        - reasoning (推荐理由) (str: "1) 第一点; 2); 第二点; 3) 第三点")
+        注意：用中文回答。
         """
         
         try:
@@ -76,12 +77,6 @@ class ArchitectureAgent:
             # 提取JSON内容
             json_str = response.split("```json")[1].split("```")[0].strip()
             result = json.loads(json_str)
-            
-            # 确保最少推荐数量
-            if len(result['recommended_styles']) < self.min_candidates:
-                result['recommended_styles'].extend(
-                    ['微服务架构', '事件驱动架构', '分层架构'][:self.min_candidates-len(result['recommended_styles'])]
-                )
                 
             return ArchitectureRecommendation(**result)
         except (IndexError, json.JSONDecodeError, KeyError) as e:
@@ -94,15 +89,7 @@ class ArchitectureAgent:
             )
 
     async def recommend(self, analysis_data: Dict) -> ArchitectureRecommendation:
-        """混合推荐流程"""
-        # 第一阶段：基于规则的筛选
-        # TODO: 待完善
-        # rule_based_candidates = self._rule_based_filter(analysis_data)
-        rule_based_candidates = ['进程间通信架构', '隐式调用架构', '显式调用架构', '批处理架构', '管道-过滤器架构', '仓库架构', '黑板架构', '解释器架构', '基于规则的系统架构', '面向对象架构', '分层架构', '微服务架构']
-        
-        # 第二阶段：LLM推理
-        if len(rule_based_candidates) < self.min_candidates:
-            rule_based_candidates.extend(['微服务架构', '事件驱动架构', '分层架构'])
+        rule_based_candidates = ['批处理架构', '主程序-子过程架构', '面向对象架构', '分层架构', '进程间通信架构', '隐式调用架构', '显式调用架构', '管道-过滤器架构', '仓库架构', '黑板架构', '解释器架构', '基于规则的系统架构']
         
         return await self._llm_based_ranking(
             candidates=list(set(rule_based_candidates)),
